@@ -1,0 +1,33 @@
+{
+  "format": "binary-split-manifest",
+  "version": 1,
+  "original_name": "video.mp4",
+  "original_relative_path": "video.mp4",
+  "original_size": 80649152,
+  "original_sha256": "22044b1479daa2dc3f3c766caf5397d8c247bbfb8b29141315c651b66e94e4f1",
+  "chunk_size": 47185920,
+  "chunk_size_mb": 45.0,
+  "part_count": 2,
+  "merge_tool": "merge_file.py",
+  "merge_commands": [
+    "python merge_file.py \"video.mp4.manifest.json\"",
+    "python tools/merge_file.py \"video.mp4.manifest.json\""
+  ],
+  "note": "把 manifest 与全部分片放在可搜索目录中，使用 merge_file.py 合并；合并程序会校验每个分片和最终文件的 SHA256。",
+  "parts": [
+    {
+      "index": 1,
+      "name": "video.mp4.part0001.bin",
+      "remote_name": "video.mp4.part0001.bin",
+      "size": 47185920,
+      "sha256": "35f19060b323953a238b10ef1ffeced1d9bace3270309b50503152091b34f654"
+    },
+    {
+      "index": 2,
+      "name": "video.mp4.part0002.bin",
+      "remote_name": "video.mp4.part0002.bin",
+      "size": 33463232,
+      "sha256": "228332721138345c05d7cbbedf3ff37d6f79cbfc393c30e57acf825fcb536150"
+    }
+  ]
+}
