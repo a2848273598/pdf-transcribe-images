@@ -5,9 +5,9 @@
   "original_relative_path": "video.mp4",
   "original_size": 431965490,
   "original_sha256": "fe90b7a7c91ee4e8ace0a00fdcc8d9c48a6271fc51c9240a9f6edf39d21eefa6",
-  "chunk_size": 47185920,
-  "chunk_size_mb": 45.0,
-  "part_count": 10,
+  "chunk_size": 94371840,
+  "chunk_size_mb": 90.0,
+  "part_count": 5,
   "merge_tool": "merge_file.py",
   "merge_commands": [
     "python merge_file.py \"video.mp4.manifest.json\"",
@@ -19,71 +19,36 @@
       "index": 1,
       "name": "video.mp4.part0001.bin",
       "remote_name": "video.mp4.part0001.bin",
-      "size": 47185920,
-      "sha256": "d14383daf02dcccbee6ab506f51f1eccd3d274b3f613333316c9e41e8ced8f9a"
+      "size": 94371840,
+      "sha256": "23d83bb9710298366a32c9977d98d46d77e932d21ca6ebe83796dd870eb13cfb"
     },
     {
       "index": 2,
       "name": "video.mp4.part0002.bin",
       "remote_name": "video.mp4.part0002.bin",
-      "size": 47185920,
-      "sha256": "7e232fcdd0fd49b974ffe2916f81c82f0e74f641e1128d89bb9f9dd82a173bb0"
+      "size": 94371840,
+      "sha256": "1c30a32d21604ea1ae37ca1dabd3614bb7c9baf4a7e2e079b7df64861a1cb7ee"
     },
     {
       "index": 3,
       "name": "video.mp4.part0003.bin",
       "remote_name": "video.mp4.part0003.bin",
-      "size": 47185920,
-      "sha256": "84b08bf975dd0a92dc608d09cce5cb2dd98872e0622f9ce3b4cf0457b1a2d895"
+      "size": 94371840,
+      "sha256": "05e629b0c7d11efec49ad5a66b5ff64cc919f23e6671cc231d163a43e54a85ea"
     },
     {
       "index": 4,
       "name": "video.mp4.part0004.bin",
       "remote_name": "video.mp4.part0004.bin",
-      "size": 47185920,
-      "sha256": "956d1887ff6f3fb803a2fcb47a83afbd7fbc31b1dd52123f65d319e180f0b9cc"
+      "size": 94371840,
+      "sha256": "e8ad53cdd8523927a4b9105c7c1ec292792d12d234e8a851499bb0e01dd14f50"
     },
     {
       "index": 5,
       "name": "video.mp4.part0005.bin",
       "remote_name": "video.mp4.part0005.bin",
-      "size": 47185920,
-      "sha256": "9be22a9f46d9776603e104d0585a5f7c98d68a840ea7e90690d1046c2adfbc7a"
-    },
-    {
-      "index": 6,
-      "name": "video.mp4.part0006.bin",
-      "remote_name": "video.mp4.part0006.bin",
-      "size": 47185920,
-      "sha256": "4b7f7bb0d4d549a458219fe1103811b05f5c43d4c6450cd2b0714ae1bf44b8c4"
-    },
-    {
-      "index": 7,
-      "name": "video.mp4.part0007.bin",
-      "remote_name": "video.mp4.part0007.bin",
-      "size": 47185920,
-      "sha256": "e5c8fbc45a507d80b845f21bf379179e89a357f5d1bbce9885e1bf56dd6ec4ea"
-    },
-    {
-      "index": 8,
-      "name": "video.mp4.part0008.bin",
-      "remote_name": "video.mp4.part0008.bin",
-      "size": 47185920,
-      "sha256": "db5d35583716ba4b96b3cdebac5a26ad48745f75376d2c5cdf7bfa5f9dca5aff"
-    },
-    {
-      "index": 9,
-      "name": "video.mp4.part0009.bin",
-      "remote_name": "video.mp4.part0009.bin",
-      "size": 47185920,
-      "sha256": "21da88c9d0e809756b037f22c2a9e8bc4b081131726481e13fe256811d7140cd"
-    },
-    {
-      "index": 10,
-      "name": "video.mp4.part0010.bin",
-      "remote_name": "video.mp4.part0010.bin",
-      "size": 7292210,
-      "sha256": "074aada2c6c672dc7426f9f2901bb62439b80f0c410957fbb8b38422ed3f1049"
+      "size": 54478130,
+      "sha256": "ab57a06593b80e16f3fe99b1ec5a3225f5e2d24fdbc4d1040d604a254972e69f"
     }
   ]
 }
