@@ -1,0 +1,61 @@
+{
+  "format": "binary-split-manifest",
+  "version": 1,
+  "original_name": "video.mp4",
+  "original_relative_path": "video.mp4",
+  "original_size": 239106526,
+  "original_sha256": "87bff6bc975305e9a2c89251d8f787f9874535bbdc297f9d917e9b0ba519dc3d",
+  "chunk_size": 47185920,
+  "chunk_size_mb": 45.0,
+  "part_count": 6,
+  "merge_tool": "merge_file.py",
+  "merge_commands": [
+    "python merge_file.py \"video.mp4.manifest.json\"",
+    "python tools/merge_file.py \"video.mp4.manifest.json\""
+  ],
+  "note": "把 manifest 与全部分片放在可搜索目录中，使用 merge_file.py 合并；合并程序会校验每个分片和最终文件的 SHA256。",
+  "parts": [
+    {
+      "index": 1,
+      "name": "video.mp4.part0001.bin",
+      "remote_name": "video.mp4.part0001.bin",
+      "size": 47185920,
+      "sha256": "6478e5bb2d04e705e9fdbaf3807d0e5d5521a3d86a43b8c0720935ce14c7ad58"
+    },
+    {
+      "index": 2,
+      "name": "video.mp4.part0002.bin",
+      "remote_name": "video.mp4.part0002.bin",
+      "size": 47185920,
+      "sha256": "77545e9d957f409fee14719e2540ec3262a15cdc91872276bddd909e4b75d243"
+    },
+    {
+      "index": 3,
+      "name": "video.mp4.part0003.bin",
+      "remote_name": "video.mp4.part0003.bin",
+      "size": 47185920,
+      "sha256": "cd9c8bb2d4fd232f854665bf363a3a2835b24b975f927d485c70f46b78d4b6af"
+    },
+    {
+      "index": 4,
+      "name": "video.mp4.part0004.bin",
+      "remote_name": "video.mp4.part0004.bin",
+      "size": 47185920,
+      "sha256": "a07aa16c825a5b3d9c4e672c91cdfcf2d066d7d2f99ee3e9fd590fe500188bec"
+    },
+    {
+      "index": 5,
+      "name": "video.mp4.part0005.bin",
+      "remote_name": "video.mp4.part0005.bin",
+      "size": 47185920,
+      "sha256": "3bf5a479cc626a2e7cc3f1c314f8e6b099b6d4fe5e002859c9747dd41a6daf71"
+    },
+    {
+      "index": 6,
+      "name": "video.mp4.part0006.bin",
+      "remote_name": "video.mp4.part0006.bin",
+      "size": 3176926,
+      "sha256": "c2cc096f986628d997a67a1622c1f41ca461581501bca0fcbb4a12c59c2c70d1"
+    }
+  ]
+}
