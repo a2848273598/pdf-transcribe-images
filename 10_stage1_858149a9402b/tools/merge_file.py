@@ -4,6 +4,8 @@ import argparse
 import hashlib
 import json
 import os
+import re
+import shutil
 
 BUFFER_SIZE = 1024 * 1024
 
@@ -199,7 +201,33 @@ def main():
 
     parser.add_argument(
         "manifest",
+        nargs="?",
         help="主程序生成的 *.manifest.json"
+    )
+
+    parser.add_argument(
+        "--auto-parts",
+        action="store_true",
+        help="按 --part-token 自动发现被中转站重命名的分片"
+    )
+
+    parser.add_argument(
+        "--part-token",
+        default=None,
+        help="分片文件名中用于匹配的原始片段标识，例如 S011.mp4"
+    )
+
+    parser.add_argument(
+        "--expected-size",
+        type=int,
+        default=None,
+        help="自动合并后应有的字节数"
+    )
+
+    parser.add_argument(
+        "--expected-sha256",
+        default=None,
+        help="自动合并后应有的 SHA256"
     )
 
     parser.add_argument(
@@ -222,12 +250,64 @@ def main():
 
     args = parser.parse_args()
 
-    merge_file(
-        manifest_path=args.manifest,
-        parts_dir=args.parts_dir,
-        output_path=args.output,
-        force=args.force,
-    )
+    if args.auto_parts:
+        if not args.part_token:
+            parser.error("--auto-parts 必须同时提供 --part-token")
+        part_dir = os.path.abspath(args.parts_dir or ".")
+        token = os.path.basename(args.part_token)
+        pattern = re.compile(
+            rf"{re.escape(token)}\.part(?P<index>\d{{4}})\.bin$",
+            re.IGNORECASE,
+        )
+        matches = []
+        for root, _, names in os.walk(part_dir):
+            for name in names:
+                match = pattern.search(name)
+                if match:
+                    matches.append((int(match.group("index")), os.path.join(root, name)))
+        matches.sort(key=lambda item: item[0])
+        expected = list(range(1, len(matches) + 1))
+        actual = [item[0] for item in matches]
+        if not matches or actual != expected:
+            raise RuntimeError(
+                f"未找到连续分片: token={token}, actual={actual}, expected={expected}"
+            )
+        output_path = os.path.abspath(args.output or f"{token}.merged.mp4")
+        if os.path.exists(output_path) and not args.force:
+            raise FileExistsError(f"输出文件已经存在: {output_path}；如需覆盖，请增加 --force")
+        temp_path = output_path + ".merging"
+        try:
+            with open(temp_path, "wb") as dst:
+                for _, part_path in matches:
+                    with open(part_path, "rb") as src:
+                        shutil.copyfileobj(src, dst, BUFFER_SIZE)
+            if (
+                args.expected_size is not None
+                and os.path.getsize(temp_path) != args.expected_size
+            ):
+                raise RuntimeError(
+                    f"自动合并文件大小错误: {os.path.getsize(temp_path)} != {args.expected_size}"
+                )
+            if (
+                args.expected_sha256 is not None
+                and sha256_file(temp_path).lower() != args.expected_sha256.lower()
+            ):
+                raise RuntimeError("自动合并文件 SHA256 校验失败")
+            os.replace(temp_path, output_path)
+        except Exception:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            raise
+        print(f"✓ 自动发现并合并 {len(matches)} 个分片: {output_path}")
+    else:
+        if not args.manifest:
+            parser.error("必须提供 manifest，或使用 --auto-parts")
+        merge_file(
+            manifest_path=args.manifest,
+            parts_dir=args.parts_dir,
+            output_path=args.output,
+            force=args.force,
+        )
 
 if __name__ == "__main__":
     main()
