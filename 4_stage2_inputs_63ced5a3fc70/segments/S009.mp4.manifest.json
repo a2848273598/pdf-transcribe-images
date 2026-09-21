@@ -1,0 +1,33 @@
+{
+  "format": "binary-split-manifest",
+  "version": 1,
+  "original_name": "S009.mp4",
+  "original_relative_path": "segments/S009.mp4",
+  "original_size": 124377755,
+  "original_sha256": "b56d0c24766f0081af103369729525361f35b3dc3380a360b990c63991c3ba71",
+  "chunk_size": 94371840,
+  "chunk_size_mb": 90.0,
+  "part_count": 2,
+  "merge_tool": "merge_file.py",
+  "merge_commands": [
+    "python merge_file.py \"S009.mp4.manifest.json\"",
+    "python tools/merge_file.py \"S009.mp4.manifest.json\""
+  ],
+  "note": "把 manifest 与全部分片放在可搜索目录中，使用 merge_file.py 合并；合并程序会校验每个分片和最终文件的 SHA256。",
+  "parts": [
+    {
+      "index": 1,
+      "name": "S009.mp4.part0001.bin",
+      "remote_name": "segments/S009.mp4.part0001.bin",
+      "size": 94371840,
+      "sha256": "4fda8224792f4ba27ef7dbebac22cce7c1eb6d54d74919107a15afbf49c3f229"
+    },
+    {
+      "index": 2,
+      "name": "S009.mp4.part0002.bin",
+      "remote_name": "segments/S009.mp4.part0002.bin",
+      "size": 30005915,
+      "sha256": "46a8ecd149fbf21cc0decf97952143abe44b6ae8570866b5a2842037a80fb585"
+    }
+  ]
+}
