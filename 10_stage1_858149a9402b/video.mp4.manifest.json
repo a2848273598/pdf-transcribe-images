@@ -8,12 +8,7 @@
   "chunk_size": 94371840,
   "chunk_size_mb": 90.0,
   "part_count": 5,
-  "merge_tool": "merge_file.py",
-  "merge_commands": [
-    "python merge_file.py \"video.mp4.manifest.json\"",
-    "python tools/merge_file.py \"video.mp4.manifest.json\""
-  ],
-  "note": "把 manifest 与全部分片放在可搜索目录中，使用 merge_file.py 合并；合并程序会校验每个分片和最终文件的 SHA256。",
+  "merge_tool": "tools/merge_file.py",
   "parts": [
     {
       "index": 1,

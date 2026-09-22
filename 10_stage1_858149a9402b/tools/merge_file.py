@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import argparse
 import hashlib
 import json
@@ -11,254 +10,91 @@ BUFFER_SIZE = 1024 * 1024
 
 def sha256_file(path):
     h = hashlib.sha256()
-
     with open(path, "rb") as f:
-        while True:
-            data = f.read(BUFFER_SIZE)
-            if not data:
-                break
-            h.update(data)
-
+        for chunk in iter(lambda: f.read(BUFFER_SIZE), b""):
+            h.update(chunk)
     return h.hexdigest()
 
 def locate_file(base_dir, filename):
-    direct_path = os.path.join(base_dir, filename)
-    if os.path.isfile(direct_path):
-        return direct_path
-
-    for root, dirs, files in os.walk(base_dir):
+    direct = os.path.join(base_dir, filename)
+    if os.path.isfile(direct):
+        return direct
+    for root, _, files in os.walk(base_dir):
         if filename in files:
             return os.path.join(root, filename)
-
     return None
 
 def merge_file(manifest_path, parts_dir=None, output_path=None, force=False):
     manifest_path = os.path.abspath(manifest_path)
-
-    if not os.path.isfile(manifest_path):
-        raise FileNotFoundError(f"Manifest 不存在: {manifest_path}")
-
     with open(manifest_path, "r", encoding="utf-8-sig") as f:
         manifest = json.load(f)
-
-    if manifest.get("format") != "binary-split-manifest":
-        raise ValueError("不是支持的分片 Manifest")
-
-    if manifest.get("version") != 1:
-        raise ValueError(f"不支持的 Manifest 版本: {manifest.get('version')}")
-
+    if manifest.get("format") != "binary-split-manifest" or manifest.get("version") != 1:
+        raise ValueError("不支持的 Manifest")
     original_name = manifest["original_name"]
     original_size = int(manifest["original_size"])
     original_sha256 = manifest["original_sha256"]
-    parts = manifest["parts"]
-
-    if parts_dir is None:
-        parts_dir = os.path.dirname(manifest_path)
-
-    parts_dir = os.path.abspath(parts_dir)
-
-    if output_path is None:
-        output_path = os.path.join(parts_dir, original_name)
-
-    output_path = os.path.abspath(output_path)
-
+    parts = sorted(manifest["parts"], key=lambda item: int(item["index"]))
+    parts_dir = os.path.abspath(parts_dir or os.path.dirname(manifest_path))
+    output_path = os.path.abspath(output_path or os.path.join(parts_dir, original_name))
     if os.path.exists(output_path) and not force:
-        raise FileExistsError(
-            f"输出文件已经存在: {output_path}\n"
-            f"如需覆盖，请增加 --force"
-        )
-
-    print("=" * 60)
-    print("文件合并")
-    print("=" * 60)
-    print(f"Manifest: {manifest_path}")
-    print(f"分片搜索目录: {parts_dir}")
-    print(f"输出文件: {output_path}")
-    print(f"分片数量: {len(parts)}")
-    print(f"原文件大小: {original_size:,} 字节")
-    print(f"原文件 SHA256: {original_sha256}")
-    print()
-
-    parts = sorted(parts, key=lambda item: int(item["index"]))
-
+        raise FileExistsError(f"输出文件已经存在: {output_path}；如需覆盖，请增加 --force")
     expected_indexes = list(range(1, len(parts) + 1))
     actual_indexes = [int(part["index"]) for part in parts]
-
     if actual_indexes != expected_indexes:
-        raise RuntimeError(
-            "分片编号不连续，可能存在缺失或重复分片。\n"
-            f"预期: {expected_indexes}\n"
-            f"实际: {actual_indexes}"
-        )
-
-    resolved_parts = []
-
-    print("开始验证所有分片...")
-
+        raise RuntimeError(f"分片编号不连续: actual={actual_indexes}, expected={expected_indexes}")
+    resolved = []
     for part in parts:
         part_path = locate_file(parts_dir, part["name"])
-
         if not part_path:
             raise FileNotFoundError(f"缺少分片: {part['name']}")
-
-        actual_size = os.path.getsize(part_path)
-
-        if actual_size != int(part["size"]):
-            raise RuntimeError(
-                f"分片大小错误: {part['name']}\n"
-                f"预期: {part['size']}\n"
-                f"实际: {actual_size}"
-            )
-
-        actual_hash = sha256_file(part_path)
-
-        if actual_hash.lower() != part["sha256"].lower():
-            raise RuntimeError(
-                f"分片 SHA256 错误: {part['name']}\n"
-                f"预期: {part['sha256']}\n"
-                f"实际: {actual_hash}"
-            )
-
-        resolved_parts.append((part, part_path))
-        print(f"✓ 分片 {int(part['index']):04d}: {part['name']}")
-
-    print()
-    print("✓ 所有分片完整")
-    print("开始合并...")
-    print()
-
-    output_dir = os.path.dirname(output_path)
-    if output_dir:
-        os.makedirs(output_dir, exist_ok=True)
-
+        if os.path.getsize(part_path) != int(part["size"]):
+            raise RuntimeError(f"分片大小错误: {part['name']}")
+        if sha256_file(part_path).lower() != part["sha256"].lower():
+            raise RuntimeError(f"分片 SHA256 错误: {part['name']}")
+        resolved.append(part_path)
     temp_path = output_path + ".merging"
-
     try:
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-
         merged_hash = hashlib.sha256()
         merged_size = 0
-
         with open(temp_path, "wb") as dst:
-            for part, part_path in resolved_parts:
-                print(
-                    f"合并 {int(part['index']):04d}/"
-                    f"{len(resolved_parts):04d}: {part['name']}"
-                )
-
+            for part_path in resolved:
                 with open(part_path, "rb") as src:
                     while True:
                         data = src.read(BUFFER_SIZE)
                         if not data:
                             break
-
                         dst.write(data)
                         merged_hash.update(data)
                         merged_size += len(data)
-
-                dst.flush()
-
-        merged_sha256 = merged_hash.hexdigest()
-
-        print()
-        print("开始验证合并文件...")
-        print(f"合并大小: {merged_size:,} 字节")
-        print(f"预期大小: {original_size:,} 字节")
-        print(f"合并 SHA256: {merged_sha256}")
-        print(f"原始 SHA256: {original_sha256}")
-
         if merged_size != original_size:
             raise RuntimeError("最终文件大小校验失败")
-
-        if merged_sha256.lower() != original_sha256.lower():
+        if merged_hash.hexdigest().lower() != original_sha256.lower():
             raise RuntimeError("最终文件 SHA256 校验失败")
-
         os.replace(temp_path, output_path)
-
-        print()
-        print("=" * 60)
-        print("✓ 合并成功")
-        print("✓ 合并文件与原文件逐字节完全一致")
-        print("=" * 60)
-        print(f"最终文件: {output_path}")
-        print(f"SHA256: {merged_sha256}")
-
+        print(f"✓ 合并成功: {output_path}")
         return output_path
-
     except Exception:
-        try:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-        except Exception:
-            pass
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
         raise
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="根据 binary-split-manifest 安全合并二进制分片。"
-    )
-
-    parser.add_argument(
-        "manifest",
-        nargs="?",
-        help="主程序生成的 *.manifest.json"
-    )
-
-    parser.add_argument(
-        "--auto-parts",
-        action="store_true",
-        help="按 --part-token 自动发现被中转站重命名的分片"
-    )
-
-    parser.add_argument(
-        "--part-token",
-        default=None,
-        help="分片文件名中用于匹配的原始片段标识，例如 S011.mp4"
-    )
-
-    parser.add_argument(
-        "--expected-size",
-        type=int,
-        default=None,
-        help="自动合并后应有的字节数"
-    )
-
-    parser.add_argument(
-        "--expected-sha256",
-        default=None,
-        help="自动合并后应有的 SHA256"
-    )
-
-    parser.add_argument(
-        "--parts-dir",
-        default=None,
-        help="分片搜索目录；默认从 Manifest 所在目录开始递归搜索"
-    )
-
-    parser.add_argument(
-        "--output",
-        default=None,
-        help="输出文件路径；默认恢复 Manifest 中记录的原始文件名"
-    )
-
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="允许覆盖已经存在的输出文件"
-    )
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("manifest", nargs="?")
+    parser.add_argument("--auto-parts", action="store_true")
+    parser.add_argument("--part-token", default=None)
+    parser.add_argument("--expected-size", type=int, default=None)
+    parser.add_argument("--expected-sha256", default=None)
+    parser.add_argument("--parts-dir", default=None)
+    parser.add_argument("--output", default=None)
+    parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
-
     if args.auto_parts:
         if not args.part_token:
             parser.error("--auto-parts 必须同时提供 --part-token")
         part_dir = os.path.abspath(args.parts_dir or ".")
         token = os.path.basename(args.part_token)
-        pattern = re.compile(
-            rf"{re.escape(token)}\.part(?P<index>\d{{4}})\.bin$",
-            re.IGNORECASE,
-        )
+        pattern = re.compile(rf"{re.escape(token)}\.part(?P<index>\d{{4}})\.bin$", re.I)
         matches = []
         for root, _, names in os.walk(part_dir):
             for name in names:
@@ -266,13 +102,11 @@ def main():
                 if match:
                     matches.append((int(match.group("index")), os.path.join(root, name)))
         matches.sort(key=lambda item: item[0])
-        expected = list(range(1, len(matches) + 1))
         actual = [item[0] for item in matches]
+        expected = list(range(1, len(matches) + 1))
         if not matches or actual != expected:
-            raise RuntimeError(
-                f"未找到连续分片: token={token}, actual={actual}, expected={expected}"
-            )
-        output_path = os.path.abspath(args.output or f"{token}.merged.mp4")
+            raise RuntimeError(f"未找到连续分片: token={token}, actual={actual}, expected={expected}")
+        output_path = os.path.abspath(args.output or f"{token}.merged")
         if os.path.exists(output_path) and not args.force:
             raise FileExistsError(f"输出文件已经存在: {output_path}；如需覆盖，请增加 --force")
         temp_path = output_path + ".merging"
@@ -281,17 +115,9 @@ def main():
                 for _, part_path in matches:
                     with open(part_path, "rb") as src:
                         shutil.copyfileobj(src, dst, BUFFER_SIZE)
-            if (
-                args.expected_size is not None
-                and os.path.getsize(temp_path) != args.expected_size
-            ):
-                raise RuntimeError(
-                    f"自动合并文件大小错误: {os.path.getsize(temp_path)} != {args.expected_size}"
-                )
-            if (
-                args.expected_sha256 is not None
-                and sha256_file(temp_path).lower() != args.expected_sha256.lower()
-            ):
+            if args.expected_size is not None and os.path.getsize(temp_path) != args.expected_size:
+                raise RuntimeError("自动合并文件大小错误")
+            if args.expected_sha256 is not None and sha256_file(temp_path).lower() != args.expected_sha256.lower():
                 raise RuntimeError("自动合并文件 SHA256 校验失败")
             os.replace(temp_path, output_path)
         except Exception:
@@ -302,12 +128,7 @@ def main():
     else:
         if not args.manifest:
             parser.error("必须提供 manifest，或使用 --auto-parts")
-        merge_file(
-            manifest_path=args.manifest,
-            parts_dir=args.parts_dir,
-            output_path=args.output,
-            force=args.force,
-        )
+        merge_file(args.manifest, args.parts_dir, args.output, args.force)
 
 if __name__ == "__main__":
     main()
