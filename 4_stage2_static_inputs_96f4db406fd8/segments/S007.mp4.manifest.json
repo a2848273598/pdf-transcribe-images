@@ -1,0 +1,28 @@
+{
+  "format": "binary-split-manifest",
+  "version": 1,
+  "original_name": "S007.mp4",
+  "original_relative_path": "segments/S007.mp4",
+  "original_size": 98854552,
+  "original_sha256": "9d79230f8d585df0a95936add96792aef8973cf8681b3125917e9fa9976a43f2",
+  "chunk_size": 94371840,
+  "chunk_size_mb": 90.0,
+  "part_count": 2,
+  "merge_tool": "tools/merge_file.py",
+  "parts": [
+    {
+      "index": 1,
+      "name": "S007.mp4.part0001.bin",
+      "remote_name": "segments/S007.mp4.part0001.bin",
+      "size": 94371840,
+      "sha256": "a52ba30c117010aa88198af84ec7186e79cafe6289c9e12943b52066ced606dd"
+    },
+    {
+      "index": 2,
+      "name": "S007.mp4.part0002.bin",
+      "remote_name": "segments/S007.mp4.part0002.bin",
+      "size": 4482712,
+      "sha256": "f62d9430612561cb1ada9f3c5772dc024d3cfc0a3dae8e4e99c6f68beda8d959"
+    }
+  ]
+}
